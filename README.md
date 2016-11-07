@@ -4,7 +4,7 @@ A command line tool to show weather from the [Dark Sky][1] API.
 
 ## Dark Sky API Key
 
-To use Freyr a [Dark Sky] API key is required. To get one [sign up][2] and
+To use Freyr a [Dark Sky][1] API key is required. To get one [sign up][2] and
 retrieve the secret key from the [account page][3].
 
 
