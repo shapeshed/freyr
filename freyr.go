@@ -10,7 +10,7 @@ import (
 	"os"
 )
 
-const darkSkyAPI string = "https://api.darksky.net/forecast/"
+const darkSkyAPI = "https://api.darksky.net/forecast/"
 
 type WeatherResponse struct {
 	Currently struct {
