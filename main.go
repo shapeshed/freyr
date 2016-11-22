@@ -28,7 +28,10 @@ func main() {
 		Key:       key,
 		Latitude:  latInt,
 		Longitude: longInt,
-		Units:     units,
+	}
+
+	if units != "" {
+		params.Units = units
 	}
 
 	forecast, err := darksky.Get(&params)
