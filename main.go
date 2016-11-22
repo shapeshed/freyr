@@ -1,98 +1,44 @@
 package main
 
 import (
-	"bytes"
-	"encoding/json"
-	"errors"
-	"flag"
 	"fmt"
-	"net/http"
+	"github.com/shapeshed/darksky"
+	"log"
 	"os"
+	"strconv"
 )
-
-const darkSkyAPI = "https://api.darksky.net/forecast/"
-
-type WeatherResponse struct {
-	Currently struct {
-		Summary     string  `json:"summary"`
-		Temperature float64 `json:"temperature"`
-	}
-}
-
-func darkSkyURL(x string, y string, z string) string {
-	var requestURL bytes.Buffer
-	requestURL.WriteString(darkSkyAPI)
-	requestURL.WriteString(x)
-	requestURL.WriteString("/")
-	requestURL.WriteString(y)
-	requestURL.WriteString("/")
-	requestURL.WriteString("?units=")
-	requestURL.WriteString(z)
-	requestURL.WriteString("&exclude=minutely,hourly,daily,alerts,tags")
-	return requestURL.String()
-}
-
-func setVariable(key, envVariable string) (string, error) {
-	envKey := os.Getenv(envVariable)
-	if len(key) == 0 && len(envKey) == 0 {
-		return "", errors.New("not set. Use --help for help.")
-	}
-	if len(key) == 0 {
-		return envKey, nil
-	}
-	return key, nil
-}
 
 func main() {
 
-	var apiKeyArg, weatherUnitsArg, latLongArg string
-	flag.StringVar(&apiKeyArg, "k", "", "Dark Sky API Key")
-	flag.StringVar(&weatherUnitsArg, "u", "si", "Weather units")
-	flag.StringVar(&latLongArg, "l", "", "Latitude and Longitude co-ordinates")
-	flag.Parse()
+	key := os.Getenv("FREYR_KEY")
+	lat := os.Getenv("FREYR_LAT")
+	long := os.Getenv("FREYR_LONG")
+	units := os.Getenv("FREYR_UNITS")
 
-	key, err := setVariable(apiKeyArg, "FREYR_KEY")
+	latInt, err := strconv.ParseFloat(lat, 64)
 	if err != nil {
-		fmt.Fprintln(os.Stderr, "Dark Sky API Key", err)
-		os.Exit(1)
+		log.Fatal(err)
 	}
-
-	latLong, err := setVariable(latLongArg, "FREYR_LATLON")
+	longInt, err := strconv.ParseFloat(long, 64)
 	if err != nil {
-		fmt.Fprintln(os.Stderr, "Latitude and longitude coordinates", err)
-		os.Exit(1)
+		log.Fatal(err)
 	}
 
-	units, err := setVariable(weatherUnitsArg, "FREYR_UNITS")
+	params := darksky.RequestParams{
+		Key:       key,
+		Latitude:  latInt,
+		Longitude: longInt,
+		Units:     units,
+	}
+
+	forecast, err := darksky.Get(&params)
 	if err != nil {
-		fmt.Fprintln(os.Stderr, "Weather units", err)
-		os.Exit(1)
+		log.Fatal(err)
 	}
 
-	var darkSkyRequest = darkSkyURL(key, latLong, units)
-
-	var weatherResponse WeatherResponse
-
-	weatherRes, err := http.Get(darkSkyRequest)
-	if err != nil {
-		fmt.Fprintln(os.Stderr, err.Error())
-		os.Exit(1)
-	}
-	if weatherRes.StatusCode != 200 {
-		fmt.Fprintln(os.Stderr, "Unexpected status code", weatherRes.StatusCode)
-		os.Exit(1)
-	}
-	defer weatherRes.Body.Close()
-
-	decoder := json.NewDecoder(weatherRes.Body)
-
-	err = decoder.Decode(&weatherResponse)
-
-	if err != nil {
-		fmt.Fprintln(os.Stderr, err.Error())
-		os.Exit(1)
-	}
-
-	fmt.Printf("It is currently %v°C and %v\n", weatherResponse.Currently.Temperature, weatherResponse.Currently.Summary)
+	fmt.Printf("It is currently %v and %v\n",
+		forecast.Currently.Temperature,
+		forecast.Currently.Summary)
 	os.Exit(0)
+
 }
