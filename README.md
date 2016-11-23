@@ -2,7 +2,7 @@
 
 [![Build Status](https://travis-ci.org/shapeshed/freyr.svg?branch=master)](https://travis-ci.org/shapeshed/freyr)
 
-A command line tool to show weather.
+A command line tool to show the weather.
 
 ## Dark Sky API Key
 
